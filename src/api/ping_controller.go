@@ -1,4 +1,4 @@
-package controller
+package api
 
 import (
 	"net/http"
@@ -6,8 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Ping(context *gin.Context) {
-
+func (env *AppEnvironment) Ping(context *gin.Context) {
 	context.JSON(
 		http.StatusOK,
 		gin.H{"message": "pong"},

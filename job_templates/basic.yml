@@ -1,0 +1,11 @@
+image: nginx
+resources:
+  cpu: 1
+  memory: 1
+ports:
+  - 80
+  - 443
+commands:
+  - 'echo "HELLO_WORLD!!!"'
+environment_variables:
+  - SAMPLE_ENV=123

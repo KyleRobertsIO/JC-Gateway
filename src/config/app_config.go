@@ -16,15 +16,18 @@ func loadEnvironmentVariables() {
 type AppConfig struct {
 	Logger LoggerConfig
 	API    APIConfig
+	Azure  AzureConfig
 }
 
 func GetAppConfig(validate bool) AppConfig {
 	loadEnvironmentVariables()
 	LOGGER_CONF := assembleLoggerConfig()
-	API_CONFIG := assembleAPIConfig()
+	API_CONF := assembleAPIConfig()
+	AZURE_CONF := assembleAzureConfig()
 	APP_CONF := AppConfig{
 		Logger: LOGGER_CONF,
-		API:    API_CONFIG,
+		API:    API_CONF,
+		Azure:  AZURE_CONF,
 	}
 	return APP_CONF
 }
