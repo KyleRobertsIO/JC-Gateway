@@ -3,8 +3,8 @@ resources:
   cpu: 1
   memory: 1
 ports:
-  - 80
-  - 443
+  - "80/tcp"
+  - "443/tcp"
 commands:
   - 'echo "HELLO_WORLD!!!"'
 environment_variables:

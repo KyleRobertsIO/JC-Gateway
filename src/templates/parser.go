@@ -15,7 +15,7 @@ type YamlResources struct {
 type YamlConfig struct {
 	Image                string        `yaml:"image"`
 	Resources            YamlResources `yaml:"resources"`
-	Ports                []int         `yaml:"ports"`
+	Ports                []string      `yaml:"ports"`
 	Commands             []string      `yaml:"commands"`
 	EnvironmentVariables []string      `yaml:"environment_variables"`
 }

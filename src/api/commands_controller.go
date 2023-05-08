@@ -49,7 +49,7 @@ func (env *AppEnvironment) CreateContainerGroup(context *gin.Context) {
 		ResourceGroup: payload.ResourceGroup,
 		Name:          payload.ContainerGroupName,
 	}
-	err := cg.Create("2022-09-01", env.AzureAccessToken)
+	err := cg.Create("2022-09-01", env.AzureAccessToken, *templateConfig)
 	if err != nil {
 		context.AbortWithError(http.StatusBadRequest, err)
 		return
