@@ -1,7 +1,10 @@
 package azure
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -33,17 +36,17 @@ type ContainerProperties struct {
 }
 
 type Container struct {
-	Name       string
+	Name       string              `json:"name"`
 	Properties ContainerProperties `json:"properties"`
 }
 
 type RequestProperties struct {
-	Containers []Container
+	Containers []Container `json:"container"`
 }
 
 type CreateRequestBody struct {
-	Location   string
-	Properties RequestProperties
+	Location   string            `json:"location"`
+	Properties RequestProperties `json:"properties"`
 }
 
 //##############################
@@ -54,6 +57,19 @@ type ContainerGroup struct {
 	Subscription  string
 	ResourceGroup string
 	Name          string
+}
+
+//##############################
+// API Responses
+//##############################
+
+type ErrorDetails struct {
+	Code    string `json:"code"`
+	Message string `json:"message"`
+}
+
+type APIResponseError struct {
+	Error ErrorDetails `json:"error"`
 }
 
 /*
@@ -135,12 +151,44 @@ func (cg *ContainerGroup) buildCreateRequestBody(
 	return &body, nil
 }
 
+func (cg *ContainerGroup) azExecuteCreateRequest(request *http.Request) (*http.Response, error) {
+	// Send HTTP request
+	client := &http.Client{}
+	response, reqErr := client.Do(request)
+	if reqErr != nil {
+		return nil, fmt.Errorf("http request to %s failed; %s", request.URL, reqErr.Error())
+	}
+	defer response.Body.Close()
+	bodyBytes, bodyErr := io.ReadAll(response.Body)
+	if bodyErr != nil {
+		return nil, fmt.Errorf("failed to read response body; %s", bodyErr.Error())
+	}
+	// Check if successful result and return
+	if response.StatusCode < 400 {
+		return response, nil
+	}
+	// Create and error result and return
+	var decodeTarget APIResponseError
+	bodyDecodeErr := json.Unmarshal(bodyBytes, &decodeTarget)
+	if bodyDecodeErr != nil {
+		return nil, fmt.Errorf("failed to decode error response body; %s", bodyDecodeErr.Error())
+	}
+	return nil, fmt.Errorf("failed to create container group; %s", decodeTarget.Error.Message)
+}
+
+func (cg *ContainerGroup) encodeCreateBody(reqBody *CreateRequestBody) (*[]byte, error) {
+	b, err := json.Marshal(reqBody)
+	if err != nil {
+		return nil, fmt.Errorf("failed to json encode request body")
+	}
+	return &b, nil
+}
+
 func (cg *ContainerGroup) Create(
 	apiVersion string,
 	accessToken string,
 	templateConfig templates.YamlConfig,
 ) error {
-	client := &http.Client{}
 	url := fmt.Sprintf(
 		"https://management.azure.com/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ContainerInstance/containerGroups/%s?api-version=%s",
 		cg.Subscription,
@@ -153,18 +201,23 @@ func (cg *ContainerGroup) Create(
 		return reqBodyErr
 	}
 	fmt.Println(reqBody)
+	encodedReqBody, encodeErr := cg.encodeCreateBody(reqBody)
+	if encodeErr != nil {
+		return encodeErr
+	}
 	request, err := http.NewRequest(
 		http.MethodPut,
 		url,
-		nil,
+		bytes.NewBuffer(*encodedReqBody),
 	)
 	if err != nil {
 		return fmt.Errorf("Failed to create container group.")
 	}
 	request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
-	res, reqErr := client.Do(request)
-	if reqErr != nil {
-		return fmt.Errorf("HTTP request to %s failed; %s", url, reqErr.Error())
+	request.Header.Set("Content-Type", "application/json")
+	res, resErr := cg.azExecuteCreateRequest(request)
+	if resErr != nil {
+		fmt.Println(resErr.Error())
 	}
 	bodyBytes, _ := ioutil.ReadAll(res.Body)
 	fmt.Println(string(bodyBytes))

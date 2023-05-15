@@ -31,7 +31,7 @@ type CreateContainerGroupInbound struct {
 }
 
 func (env *AppEnvironment) CreateContainerGroup(context *gin.Context) {
-	// env.AzureAuthenticate()
+	env.AzureAuthenticate()
 	payload := new(CreateContainerGroupInbound)
 	bindErr := context.BindJSON(&payload)
 	if bindErr != nil {
@@ -43,7 +43,6 @@ func (env *AppEnvironment) CreateContainerGroup(context *gin.Context) {
 		context.AbortWithError(http.StatusBadRequest, templateErr)
 		return
 	}
-	fmt.Println(templateConfig.Image)
 	cg := azure.ContainerGroup{
 		Subscription:  payload.Subscription,
 		ResourceGroup: payload.ResourceGroup,
