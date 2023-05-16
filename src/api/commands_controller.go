@@ -23,11 +23,19 @@ func (env *AppEnvironment) AzureAuthenticate() {
 	env.AzureAccessToken = authRes.AccessToken
 }
 
+type SubnetDetails struct {
+	VNetName      string `json:"vnet_name"`
+	SubnetName    string `json:"subnet_name"`
+	Subscription  string `json:"subscription"`
+	ResourceGroup string `json:"resource_group"`
+}
+
 type CreateContainerGroupInbound struct {
-	Subscription       string `json:"subscription"`
-	ResourceGroup      string `json:"resource_group"`
-	ContainerGroupName string `json:"container_group_name"`
-	TemplateName       string `json:"template_name"`
+	Subscription       string        `json:"subscription"`
+	ResourceGroup      string        `json:"resource_group"`
+	ContainerGroupName string        `json:"container_group_name"`
+	TemplateName       string        `json:"template_name"`
+	SubnetDetails      SubnetDetails `json:"subnet"`
 }
 
 func (env *AppEnvironment) CreateContainerGroup(context *gin.Context) {

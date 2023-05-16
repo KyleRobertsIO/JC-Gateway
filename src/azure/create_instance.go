@@ -3,64 +3,41 @@ package azure
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"strconv"
 	"strings"
 
+	"kyleroberts.io/src/azure/requests"
 	"kyleroberts.io/src/templates"
 )
 
 //##############################
-// Outbound Azure Payload
-//##############################
-
-type ResourceRequest struct {
-	CPU    int `json:"cpu"`
-	Memory int `json:"memoryInGB"`
-	// Will need to work in GPU allocation at some point
-}
-
-type ContainerResources struct {
-	ResourceRequest ResourceRequest `json:"requests"`
-}
-
-type ContainerProperties struct {
-	Command              []string                 `json:"command"`
-	EnvironmentVariables []string                 `json:"environmentVariables"`
-	Image                string                   `json:"image"`
-	Ports                []map[string]interface{} `json:"ports"`
-	Resources            ContainerResources       `json:"resources"`
-}
-
-type Container struct {
-	Name       string              `json:"name"`
-	Properties ContainerProperties `json:"properties"`
-}
-
-type RequestProperties struct {
-	Containers []Container `json:"container"`
-}
-
-type CreateRequestBody struct {
-	Location   string            `json:"location"`
-	Properties RequestProperties `json:"properties"`
-}
-
-//##############################
+//
 // Inbound Client Payload
+//
 //##############################
+
+type ContainerGroupSubnet struct {
+	VNetName      string
+	SubnetName    string
+	ResourceGroup string
+	Subscription  string
+}
 
 type ContainerGroup struct {
 	Subscription  string
 	ResourceGroup string
 	Name          string
+	Subnet        ContainerGroupSubnet
 }
 
 //##############################
+//
 // API Responses
+//
 //##############################
 
 type ErrorDetails struct {
@@ -70,6 +47,36 @@ type ErrorDetails struct {
 
 type APIResponseError struct {
 	Error ErrorDetails `json:"error"`
+}
+
+func (cg *ContainerGroup) buildSubnetId(
+	subscriptionId string,
+	resourceGroup string,
+	vnetName string,
+	subnetName string,
+) string {
+	subnetId := fmt.Sprintf(
+		"/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/virtualNetworks/%s/subnets/%s",
+		subscriptionId,
+		resourceGroup,
+		vnetName,
+		subnetName,
+	)
+	return subnetId
+}
+
+func (cg *ContainerGroup) translateOSType(os string) (string, error) {
+	switch strings.ToUpper(os) {
+	case "LINUX":
+		return "Linux", nil
+	case "WINDOWS":
+		return "Windows", nil
+	default:
+		allowedOptions := "['LINUX', 'WINDOWS']"
+		msg := "failed to determine provided OSType from string;"
+		errMsg := fmt.Sprintf("%s acceptable values are %s", msg, allowedOptions)
+		return "", errors.New(errMsg)
+	}
 }
 
 /*
@@ -90,6 +97,23 @@ func (cg *ContainerGroup) explodePort(portDefinition string) (int, string, error
 	}
 	portProtocol := portDetails[1]
 	return portNumber, portProtocol, nil
+}
+
+func (cg *ContainerGroup) translateEnvironmentVars(
+	envVars []templates.YamlEnvironmentVariable,
+) []map[string]interface{} {
+	var translatedVars []map[string]interface{}
+	for _, yamlVar := range envVars {
+		tempMap := make(map[string]interface{})
+		tempMap["name"] = yamlVar.Name
+		if yamlVar.Secure {
+			tempMap["secureValue"] = yamlVar.Value
+		} else {
+			tempMap["value"] = yamlVar.Value
+		}
+		translatedVars = append(translatedVars, tempMap)
+	}
+	return translatedVars
 }
 
 /*
@@ -116,7 +140,10 @@ func (cg *ContainerGroup) translatePortsToMaps(ports []string) ([]map[string]int
 
 func (cg *ContainerGroup) buildCreateRequestBody(
 	templateConfig templates.YamlConfig,
-) (*CreateRequestBody, error) {
+) (*requests.CreateContainerGroupBody, error) {
+	//##########################################
+	// Define Container Ports
+	//##########################################
 	portMaps, portTranslateErr := cg.translatePortsToMaps(templateConfig.Ports)
 	if portTranslateErr != nil {
 		return nil, fmt.Errorf(
@@ -124,28 +151,56 @@ func (cg *ContainerGroup) buildCreateRequestBody(
 			portTranslateErr.Error(),
 		)
 	}
-	containerResources := ContainerResources{
-		ResourceRequest: ResourceRequest{
+	//##########################################
+	// Define Operating System Type
+	//##########################################
+	osType, osTypeErr := cg.translateOSType(templateConfig.OperatingSystem)
+	if osTypeErr != nil {
+		return nil, osTypeErr
+	}
+	//##########################################
+	// Define Container Subnet Id
+	//##########################################
+	containerGroupSubnet := requests.ContainerGroupSubnetId{}
+	containerGroupSubnet.Id = cg.buildSubnetId(
+		cg.Subnet.Subscription,
+		cg.Subnet.ResourceGroup,
+		cg.Subnet.VNetName,
+		cg.Subnet.SubnetName,
+	)
+	containerGroupSubnet.Name = cg.Subnet.SubnetName
+	//##########################################
+	// Define Container Resources
+	//##########################################
+	containerResources := requests.Resources{
+		ResourceRequest: requests.ResourceRequest{
 			CPU:    templateConfig.Resources.CPU,
-			Memory: templateConfig.Resources.Memory,
+			Memory: float64(templateConfig.Resources.Memory),
 		},
 	}
-	container := Container{
-		Name: "sample-container-name-1",
-		Properties: ContainerProperties{
+	//##########################################
+	// Define Container Instance
+	//##########################################
+	container := requests.Container{
+		Name: templateConfig.ContainerName,
+		Properties: requests.ContainerProperties{
 			Command:              templateConfig.Commands,
-			EnvironmentVariables: templateConfig.EnvironmentVariables,
+			EnvironmentVariables: cg.translateEnvironmentVars(templateConfig.EnvironmentVariables),
 			Image:                templateConfig.Image,
 			Ports:                portMaps,
 			Resources:            containerResources,
 		},
 	}
-	var containerArr = []Container{}
+	var containerArr = []requests.Container{}
 	containerArr = append(containerArr, container)
-	body := CreateRequestBody{
-		Location: "canada-central",
-		Properties: RequestProperties{
+	//##########################################
+	// Define Create Container Request Body
+	//##########################################
+	body := requests.CreateContainerGroupBody{
+		Location: "canada central",
+		Properties: requests.ContainerGroupProperties{
 			Containers: containerArr,
+			OSType:     osType,
 		},
 	}
 	return &body, nil
@@ -176,7 +231,7 @@ func (cg *ContainerGroup) azExecuteCreateRequest(request *http.Request) (*http.R
 	return nil, fmt.Errorf("failed to create container group; %s", decodeTarget.Error.Message)
 }
 
-func (cg *ContainerGroup) encodeCreateBody(reqBody *CreateRequestBody) (*[]byte, error) {
+func (cg *ContainerGroup) encodeCreateBody(reqBody *requests.CreateContainerGroupBody) (*[]byte, error) {
 	b, err := json.Marshal(reqBody)
 	if err != nil {
 		return nil, fmt.Errorf("failed to json encode request body")
@@ -200,7 +255,6 @@ func (cg *ContainerGroup) Create(
 	if reqBodyErr != nil {
 		return reqBodyErr
 	}
-	fmt.Println(reqBody)
 	encodedReqBody, encodeErr := cg.encodeCreateBody(reqBody)
 	if encodeErr != nil {
 		return encodeErr
@@ -211,15 +265,13 @@ func (cg *ContainerGroup) Create(
 		bytes.NewBuffer(*encodedReqBody),
 	)
 	if err != nil {
-		return fmt.Errorf("Failed to create container group.")
+		return fmt.Errorf("failed to create container group")
 	}
 	request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
 	request.Header.Set("Content-Type", "application/json")
-	res, resErr := cg.azExecuteCreateRequest(request)
+	_, resErr := cg.azExecuteCreateRequest(request)
 	if resErr != nil {
-		fmt.Println(resErr.Error())
+		return resErr
 	}
-	bodyBytes, _ := ioutil.ReadAll(res.Body)
-	fmt.Println(string(bodyBytes))
 	return nil
 }

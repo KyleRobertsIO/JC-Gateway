@@ -12,17 +12,26 @@ type YamlResources struct {
 	Memory int `yaml:"memory"`
 }
 
+type YamlEnvironmentVariable struct {
+	Secure bool   `json:"secure"`
+	Name   string `json:"name"`
+	Value  string `json:"value"`
+}
+
 type YamlConfig struct {
-	Image                string        `yaml:"image"`
-	Resources            YamlResources `yaml:"resources"`
-	Ports                []string      `yaml:"ports"`
-	Commands             []string      `yaml:"commands"`
-	EnvironmentVariables []string      `yaml:"environment_variables"`
+	ContainerName        string                    `yaml:"container_name"`
+	OperatingSystem      string                    `yaml:"os"`
+	Image                string                    `yaml:"image"`
+	Resources            YamlResources             `yaml:"resources"`
+	Ports                []string                  `yaml:"ports"`
+	Commands             []string                  `yaml:"commands"`
+	EnvironmentVariables []YamlEnvironmentVariable `yaml:"environment_variables"`
 }
 
 func Parse(templateName string) (*YamlConfig, error) {
 	// Open the targeted job template file
-	b, readErr := os.ReadFile("./job_templates/basic.yml")
+	templatePath := fmt.Sprintf("./job_templates/%s.yml", templateName)
+	b, readErr := os.ReadFile(templatePath)
 	if readErr != nil {
 		return nil, fmt.Errorf(
 			"failed to read job template file; %s",

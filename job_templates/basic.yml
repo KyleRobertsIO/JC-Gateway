@@ -1,11 +1,11 @@
 image: nginx
+container_name: "sample-job-container"
+os: "linux"
 resources:
   cpu: 1
   memory: 1
 ports:
   - "80/tcp"
   - "443/tcp"
-commands:
-  - 'echo "HELLO_WORLD!!!"'
 environment_variables:
-  - SAMPLE_ENV=123
+  - { name: SAMPLE_ENV, value: 123, secure: false }
