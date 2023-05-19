@@ -7,7 +7,7 @@ type Subnet struct {
 	SubnetName         string `json:"subnet_name"`
 }
 
-type EnvironmentVariables struct {
+type EnvironmentVariable struct {
 	Secure bool   `json:"secure"`
 	Name   string `json:"name"`
 	Value  string `json:"value"`
@@ -24,11 +24,12 @@ type Resources struct {
 }
 
 type Container struct {
-	Name                 string               `json:"name"`
-	Ports                []Port               `json:"ports"`
-	EnvironmentVariables EnvironmentVariables `json:"environment_variables"`
-	Resources            Resources            `json:"resources"`
-	Command              []string             `json:"command"`
+	Name                 string                `json:"name"`
+	Ports                []Port                `json:"ports"`
+	EnvironmentVariables []EnvironmentVariable `json:"environment_variables"`
+	Resources            Resources             `json:"resources"`
+	Command              []string              `json:"command"`
+	Image                string                `json:"image"`
 }
 
 type CreateContainerGroup struct {

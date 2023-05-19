@@ -1,6 +1,15 @@
 package requests
 
 //##############################################
+// General Details
+//##############################################
+
+type Port struct {
+	Port     int    `json:"port"`
+	Protocol string `json:"protocol"`
+}
+
+//##############################################
 // Container Specific Details
 //##############################################
 
@@ -18,7 +27,7 @@ type ContainerProperties struct {
 	Command              []string                 `json:"command"`
 	EnvironmentVariables []map[string]interface{} `json:"environmentVariables"`
 	Image                string                   `json:"image"`
-	Ports                []map[string]interface{} `json:"ports"`
+	Ports                []Port                   `json:"ports"`
 	Resources            Resources                `json:"resources"`
 }
 
