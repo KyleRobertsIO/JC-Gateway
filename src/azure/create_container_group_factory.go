@@ -6,11 +6,40 @@ import (
 )
 
 type ContainerGroupFactory struct {
-	payloads.CreateContainerGroup
+	payload payloads.CreateContainerGroup
 }
 
 func (cgf *ContainerGroupFactory) Create() requests.CreateContainerGroupBody {
-
+	// Build Container Collection Details
+	var containers []requests.Container
+	for _, c := range cgf.payload.Containers {
+		container := cgf.createContainer(c)
+		containers = append(containers, container)
+	}
+	// Container Group Networking Details
+	ipaddress := requests.IPAddress{
+		Type:  cgf.payload.IPAddress.Type,
+		Ports: cgf.translatePorts(cgf.payload.IPAddress.Ports),
+	}
+	var subnetCollection []requests.ContainerGroupSubnetId
+	if cgf.payload.IPAddress.Type == "Private" {
+		subnetId := requests.ContainerGroupSubnetId{
+			Id:   cgf.payload.Subnet.GetId(),
+			Name: cgf.payload.Subnet.SubnetName,
+		}
+		subnetCollection = append(subnetCollection, subnetId)
+	}
+	// Build Container Group Details
+	groupProps := requests.ContainerGroupProperties{
+		Containers:             containers,
+		OSType:                 cgf.payload.OSType,
+		ContainerGroupSubnetId: subnetCollection,
+		IPAddress:              ipaddress,
+	}
+	return requests.CreateContainerGroupBody{
+		Location:   cgf.payload.Location,
+		Properties: groupProps,
+	}
 }
 
 func (cgf *ContainerGroupFactory) translateEnvVars(
@@ -54,26 +83,24 @@ func (cgf *ContainerGroupFactory) translatePort(port payloads.Port) requests.Por
 	return translatedPort
 }
 
-func (cgf *ContainerGroupFactory) createContainerGroup(
-	payload payloads.Container,
-	osType string,
+func (cgf *ContainerGroupFactory) createContainer(
+	container payloads.Container,
 ) requests.Container {
 	containerResources := requests.Resources{
 		ResourceRequest: requests.ResourceRequest{
-			CPU:    payload.Resources.CPU,
-			Memory: float64(payload.Resources.Memory),
+			CPU:    container.Resources.CPU,
+			Memory: float64(container.Resources.Memory),
 		},
 	}
 	containerProps := requests.ContainerProperties{
-		Command:              payload.Command,
-		EnvironmentVariables: cgf.translateEnvVars(payload.EnvironmentVariables),
-		Image:                payload.Image,
-		Ports:                cgf.translatePorts(payload.Ports),
+		Command:              container.Command,
+		EnvironmentVariables: cgf.translateEnvVars(container.EnvironmentVariables),
+		Image:                container.Image,
+		Ports:                cgf.translatePorts(container.Ports),
 		Resources:            containerResources,
 	}
-	container := requests.Container{
-		Name:       payload.Name,
+	return requests.Container{
+		Name:       container.Name,
 		Properties: containerProps,
 	}
-	return container
 }

@@ -1,10 +1,27 @@
 package payloads
 
+import "fmt"
+
 type Subnet struct {
 	Subscription       string `json:"subscription"`
 	ResourceGroup      string `json:"resource_group"`
 	VirtualNetworkName string `json:"virutal_network_name"`
 	SubnetName         string `json:"subnet_name"`
+}
+
+func (s *Subnet) GetId() string {
+	return fmt.Sprintf(
+		"/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/virtualNetworks/%s/subnets/%s",
+		s.Subscription,
+		s.ResourceGroup,
+		s.VirtualNetworkName,
+		s.SubnetName,
+	)
+}
+
+type IPAddress struct {
+	Type  string `json:"type" validate:"omitempty,oneof=Public Private"`
+	Ports []Port `json:"ports"`
 }
 
 type EnvironmentVariable struct {
@@ -39,4 +56,6 @@ type CreateContainerGroup struct {
 	OSType             string      `json:"os_type" default:"Linux" validate:"omitempty,oneof=Linux Windows"`
 	Subnet             Subnet      `json:"container_subnet"`
 	Containers         []Container `json:"containers"`
+	Location           string      `json:"location"`
+	IPAddress          IPAddress   `json:"ipaddress"`
 }

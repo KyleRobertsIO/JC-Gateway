@@ -45,11 +45,17 @@ type ContainerGroupSubnetId struct {
 	Name string `json:"name"`
 }
 
+type IPAddress struct {
+	Type  string `json:"type" validate:"omitempty,oneof=Public Private"`
+	Ports []Port `json:"ports"`
+}
+
 type ContainerGroupProperties struct {
 	Containers             []Container              `json:"containers"`
 	OSType                 string                   `json:"osType"`
 	RestartPolicy          string                   `json:"restartPolicy" default:"Never"`
 	ContainerGroupSubnetId []ContainerGroupSubnetId `json:"subnetIds"`
+	IPAddress              IPAddress                `json:"ipaddress"`
 }
 
 type CreateContainerGroupBody struct {
