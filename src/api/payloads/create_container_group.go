@@ -36,8 +36,8 @@ type Port struct {
 }
 
 type Resources struct {
-	CPU    int `json:"cpu"`
-	Memory int `json:"memory"`
+	CPU    int     `json:"cpu"`
+	Memory float64 `json:"memory"`
 }
 
 type Container struct {

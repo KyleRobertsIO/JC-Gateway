@@ -6,39 +6,41 @@ import (
 )
 
 type ContainerGroupFactory struct {
-	payload payloads.CreateContainerGroup
+	Payload *payloads.CreateContainerGroup
 }
 
 func (cgf *ContainerGroupFactory) Create() requests.CreateContainerGroupBody {
 	// Build Container Collection Details
 	var containers []requests.Container
-	for _, c := range cgf.payload.Containers {
+	for _, c := range cgf.Payload.Containers {
 		container := cgf.createContainer(c)
 		containers = append(containers, container)
 	}
 	// Container Group Networking Details
 	ipaddress := requests.IPAddress{
-		Type:  cgf.payload.IPAddress.Type,
-		Ports: cgf.translatePorts(cgf.payload.IPAddress.Ports),
+		Type:  cgf.Payload.IPAddress.Type,
+		Ports: cgf.translatePorts(cgf.Payload.IPAddress.Ports),
 	}
 	var subnetCollection []requests.ContainerGroupSubnetId
-	if cgf.payload.IPAddress.Type == "Private" {
+	if cgf.Payload.IPAddress.Type == "Private" {
 		subnetId := requests.ContainerGroupSubnetId{
-			Id:   cgf.payload.Subnet.GetId(),
-			Name: cgf.payload.Subnet.SubnetName,
+			Id:   cgf.Payload.Subnet.GetId(),
+			Name: cgf.Payload.Subnet.SubnetName,
 		}
 		subnetCollection = append(subnetCollection, subnetId)
 	}
 	// Build Container Group Details
 	groupProps := requests.ContainerGroupProperties{
 		Containers:             containers,
-		OSType:                 cgf.payload.OSType,
+		OSType:                 cgf.Payload.OSType,
 		ContainerGroupSubnetId: subnetCollection,
 		IPAddress:              ipaddress,
+		RestartPolicy:          "Never",
 	}
 	return requests.CreateContainerGroupBody{
-		Location:   cgf.payload.Location,
+		Location:   cgf.Payload.Location,
 		Properties: groupProps,
+		Name:       cgf.Payload.ContainerGroupName,
 	}
 }
 

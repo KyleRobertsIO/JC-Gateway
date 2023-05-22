@@ -53,7 +53,7 @@ type IPAddress struct {
 type ContainerGroupProperties struct {
 	Containers             []Container              `json:"containers"`
 	OSType                 string                   `json:"osType"`
-	RestartPolicy          string                   `json:"restartPolicy" default:"Never"`
+	RestartPolicy          string                   `json:"restartPolicy"`
 	ContainerGroupSubnetId []ContainerGroupSubnetId `json:"subnetIds"`
 	IPAddress              IPAddress                `json:"ipaddress"`
 }
@@ -61,4 +61,5 @@ type ContainerGroupProperties struct {
 type CreateContainerGroupBody struct {
 	Location   string                   `json:"location"`
 	Properties ContainerGroupProperties `json:"properties"`
+	Name       string                   `json:"name"`
 }
