@@ -30,14 +30,6 @@ type SubnetDetails struct {
 	ResourceGroup string `json:"resource_group"`
 }
 
-// type CreateContainerGroupInbound struct {
-// 	Subscription       string        `json:"subscription"`
-// 	ResourceGroup      string        `json:"resource_group"`
-// 	ContainerGroupName string        `json:"container_group_name"`
-// 	TemplateName       string        `json:"template_name"`
-// 	SubnetDetails      SubnetDetails `json:"subnet"`
-// }
-
 func (env *AppEnvironment) CreateContainerGroup(context *gin.Context) {
 	env.AzureAuthenticate()
 	payload := new(payloads.CreateContainerGroup)
@@ -52,9 +44,12 @@ func (env *AppEnvironment) CreateContainerGroup(context *gin.Context) {
 		Subscription:  payload.Subscription,
 		ResourceGroup: payload.ResourceGroup,
 	}
-	azErr := cgManager.Create(payload)
-	if azErr != nil {
-		context.AbortWithError(http.StatusBadRequest, azErr)
+	createErr := cgManager.Create(payload)
+	if createErr != nil {
+		context.JSON(
+			createErr.HttpStatusCode,
+			createErr,
+		)
 		return
 	} else {
 		context.JSON(
@@ -64,34 +59,3 @@ func (env *AppEnvironment) CreateContainerGroup(context *gin.Context) {
 		return
 	}
 }
-
-// func (env *AppEnvironment) CreateContainerGroup(context *gin.Context) {
-// 	env.AzureAuthenticate()
-// 	payload := new(CreateContainerGroupInbound)
-// 	bindErr := context.BindJSON(&payload)
-// 	if bindErr != nil {
-// 		context.AbortWithError(http.StatusBadRequest, bindErr)
-// 		return
-// 	}
-// 	templateConfig, templateErr := templates.Parse(payload.TemplateName)
-// 	if templateErr != nil {
-// 		context.AbortWithError(http.StatusBadRequest, templateErr)
-// 		return
-// 	}
-// 	cg := azure.ContainerGroup{
-// 		Subscription:  payload.Subscription,
-// 		ResourceGroup: payload.ResourceGroup,
-// 		Name:          payload.ContainerGroupName,
-// 	}
-// 	err := cg.Create("2022-09-01", env.AzureAccessToken, *templateConfig)
-// 	if err != nil {
-// 		context.AbortWithError(http.StatusBadRequest, err)
-// 		return
-// 	} else {
-// 		context.JSON(
-// 			http.StatusOK,
-// 			gin.H{"message": "Created Azure Container Instance"},
-// 		)
-// 		return
-// 	}
-// }

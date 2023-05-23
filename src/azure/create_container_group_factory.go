@@ -11,7 +11,7 @@ type ContainerGroupFactory struct {
 
 func (cgf *ContainerGroupFactory) Create() requests.CreateContainerGroupBody {
 	// Build Container Collection Details
-	var containers []requests.Container
+	containers := make([]requests.Container, 0)
 	for _, c := range cgf.Payload.Containers {
 		container := cgf.createContainer(c)
 		containers = append(containers, container)
@@ -21,7 +21,7 @@ func (cgf *ContainerGroupFactory) Create() requests.CreateContainerGroupBody {
 		Type:  cgf.Payload.IPAddress.Type,
 		Ports: cgf.translatePorts(cgf.Payload.IPAddress.Ports),
 	}
-	var subnetCollection []requests.ContainerGroupSubnetId
+	subnetCollection := make([]requests.ContainerGroupSubnetId, 0)
 	if cgf.Payload.IPAddress.Type == "Private" {
 		subnetId := requests.ContainerGroupSubnetId{
 			Id:   cgf.Payload.Subnet.GetId(),
@@ -47,7 +47,7 @@ func (cgf *ContainerGroupFactory) Create() requests.CreateContainerGroupBody {
 func (cgf *ContainerGroupFactory) translateEnvVars(
 	envVars []payloads.EnvironmentVariable,
 ) []map[string]interface{} {
-	var envVarCollection []map[string]interface{}
+	envVarCollection := make([]map[string]interface{}, 0)
 	for _, port := range envVars {
 		translatedEnvVar := cgf.translateEnvVar(port)
 		envVarCollection = append(envVarCollection, translatedEnvVar)
@@ -69,7 +69,7 @@ func (cgf *ContainerGroupFactory) translateEnvVar(
 }
 
 func (cgf *ContainerGroupFactory) translatePorts(ports []payloads.Port) []requests.Port {
-	var translatedPortCollection []requests.Port
+	translatedPortCollection := make([]requests.Port, 0)
 	for _, port := range ports {
 		translatedPort := cgf.translatePort(port)
 		translatedPortCollection = append(translatedPortCollection, translatedPort)

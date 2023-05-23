@@ -55,7 +55,7 @@ type ContainerGroupProperties struct {
 	OSType                 string                   `json:"osType"`
 	RestartPolicy          string                   `json:"restartPolicy"`
 	ContainerGroupSubnetId []ContainerGroupSubnetId `json:"subnetIds"`
-	IPAddress              IPAddress                `json:"ipaddress"`
+	IPAddress              IPAddress                `json:"ipAddress"`
 }
 
 type CreateContainerGroupBody struct {
