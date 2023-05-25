@@ -16,9 +16,9 @@ func apiLayer(appEnvironment api.AppEnvironment) {
 	router := gin.Default()
 	routes := router.Group("/api")
 	routes.GET("/ping", appEnvironment.Ping)
-	// routes.GET("/ping", controller.Ping)
 
 	routes.POST("/create", appEnvironment.CreateContainerGroup)
+	routes.GET("/status", appEnvironment.ContainerGroupStatus)
 	router.Run(fmt.Sprintf(":%d", appEnvironment.Config.API.Port))
 }
 

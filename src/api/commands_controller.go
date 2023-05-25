@@ -16,11 +16,12 @@ func (env *AppEnvironment) AzureAuthenticate() {
 		TenantID:     env.Config.Azure.TenantID,
 		Scope:        env.Config.Azure.App.Scope,
 	}
-	authRes, loginErr := azure.GetAzureToken(authRequirements)
-	if loginErr != nil {
-		fmt.Println("failed to authenticate with Azure")
+	cred, credErr := azure.GetAzureToken(authRequirements)
+	if credErr != nil {
+		fmt.Println(credErr.Error())
+	} else {
+		env.AzureCredential = cred
 	}
-	env.AzureAccessToken = authRes.AccessToken
 }
 
 type SubnetDetails struct {
@@ -39,12 +40,11 @@ func (env *AppEnvironment) CreateContainerGroup(context *gin.Context) {
 		return
 	}
 	cgManager := azure.ContainerGroupManager{
-		AccessToken:   env.AzureAccessToken,
-		APIVersion:    "2022-09-01",
+		Credential:    env.AzureCredential,
 		Subscription:  payload.Subscription,
 		ResourceGroup: payload.ResourceGroup,
 	}
-	createErr := cgManager.Create(payload)
+	createErr := cgManager.CreateOrUpdate(payload)
 	if createErr != nil {
 		context.JSON(
 			createErr.HttpStatusCode,
@@ -56,6 +56,23 @@ func (env *AppEnvironment) CreateContainerGroup(context *gin.Context) {
 			http.StatusOK,
 			gin.H{"message": "Created Azure Container Instance"},
 		)
+		return
+	}
+}
+
+func (env *AppEnvironment) ContainerGroupStatus(context *gin.Context) {
+	env.AzureAuthenticate()
+	cgManager := azure.ContainerGroupManager{
+		Credential:    env.AzureCredential,
+		Subscription:  context.Query("subscription"),
+		ResourceGroup: context.Query("resource_group"),
+	}
+	containerStatus, statusErr := cgManager.Status(context.Query("group_name"))
+	if statusErr != nil {
+		context.JSON(statusErr.HttpStatusCode, statusErr)
+		return
+	} else {
+		context.JSON(http.StatusOK, containerStatus)
 		return
 	}
 }

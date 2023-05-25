@@ -32,11 +32,11 @@ type EnvironmentVariable struct {
 
 type Port struct {
 	Protocol string `json:"protocol" validate:"omitempty,oneof=tcp udp"`
-	Number   int    `json:"number"`
+	Number   int32  `json:"number"`
 }
 
 type Resources struct {
-	CPU    int     `json:"cpu"`
+	CPU    float64 `json:"cpu"`
 	Memory float64 `json:"memory"`
 }
 
@@ -45,7 +45,7 @@ type Container struct {
 	Ports                []Port                `json:"ports"`
 	EnvironmentVariables []EnvironmentVariable `json:"environment_variables"`
 	Resources            Resources             `json:"resources"`
-	Command              []string              `json:"command"`
+	Command              []*string             `json:"command"`
 	Image                string                `json:"image"`
 }
 
