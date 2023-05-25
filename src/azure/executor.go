@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
@@ -39,12 +40,12 @@ type ContainerGroupState struct {
 }
 
 type ContainerState struct {
-	ContainerName string    `json:"container_name"`
-	State         string    `json:"state"`
-	StartTime     time.Time `json:"start_time"`
-	FinishTime    time.Time `json:"finish_time"`
-	ExitCode      int32     `json:"exit_code"`
-	DetailStatus  string    `json:"detail_status"`
+	ContainerName string     `json:"container_name"`
+	State         string     `json:"state"`
+	StartTime     *time.Time `json:"start_time"`
+	FinishTime    *time.Time `json:"finish_time"`
+	ExitCode      *int32     `json:"exit_code"`
+	DetailStatus  string     `json:"detail_status"`
 }
 
 func (cgm *ContainerGroupManager) getClient() (*armcontainerinstance.ContainerGroupsClient, *ContainerGroupManagerError) {
@@ -92,6 +93,32 @@ func (cgm *ContainerGroupManager) CreateOrUpdate(
 	return nil
 }
 
+func (cgm *ContainerGroupManager) determineGroupState(containerStates []ContainerState) string {
+	state := "PENDING"
+	waiting := 0
+	running := 0
+	for _, containerState := range containerStates {
+		cState := strings.ToUpper(containerState.State)
+		if cState == "TERMINATED" {
+			state = "TERMINATED"
+			break
+		}
+		if cState == "WAITING" {
+			waiting += 1
+		}
+		if cState == "RUNNING" {
+			running += 1
+		}
+	}
+	if waiting > 0 {
+		return "WAITING"
+	}
+	if running > 0 {
+		return "RUNNING"
+	}
+	return state
+}
+
 func (cgm *ContainerGroupManager) Status(
 	groupName string,
 ) (*ContainerGroupState, *ContainerGroupManagerError) {
@@ -120,35 +147,20 @@ func (cgm *ContainerGroupManager) Status(
 	}
 
 	containerStates := make([]ContainerState, 0)
-	groupState := "PENDING"
 	for _, container := range res.Properties.Containers {
 		if container.Properties.InstanceView != nil {
-			if *container.Properties.InstanceView.CurrentState.State == "Waiting" {
-				state := ContainerState{
-					ContainerName: *container.Name,
-					State:         *container.Properties.InstanceView.CurrentState.State,
-					DetailStatus:  *container.Properties.InstanceView.CurrentState.DetailStatus,
-				}
-				containerStates = append(containerStates, state)
-				if groupState == "PENDING" {
-					groupState = "WAITING"
-				}
-			} else {
-				state := ContainerState{
-					ContainerName: *container.Name,
-					State:         *container.Properties.InstanceView.CurrentState.State,
-					StartTime:     *container.Properties.InstanceView.CurrentState.StartTime,
-					FinishTime:    *container.Properties.InstanceView.CurrentState.FinishTime,
-					ExitCode:      *container.Properties.InstanceView.CurrentState.ExitCode,
-					DetailStatus:  *container.Properties.InstanceView.CurrentState.DetailStatus,
-				}
-				containerStates = append(containerStates, state)
-				if groupState == "PENDING" {
-					groupState = "TERMINATED"
-				}
+			state := ContainerState{
+				ContainerName: *container.Name,
+				State:         *container.Properties.InstanceView.CurrentState.State,
+				StartTime:     container.Properties.InstanceView.CurrentState.StartTime,
+				FinishTime:    container.Properties.InstanceView.CurrentState.FinishTime,
+				ExitCode:      container.Properties.InstanceView.CurrentState.ExitCode,
+				DetailStatus:  *container.Properties.InstanceView.CurrentState.DetailStatus,
 			}
+			containerStates = append(containerStates, state)
 		}
 	}
+	groupState := cgm.determineGroupState(containerStates)
 	containerGroupState := ContainerGroupState{
 		ContainerStates: containerStates,
 		State:           groupState,
