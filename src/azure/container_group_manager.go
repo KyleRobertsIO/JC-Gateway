@@ -58,7 +58,7 @@ func (cgm *ContainerGroupManager) getClient() (*armcontainerinstance.ContainerGr
 		return nil, &ContainerGroupManagerError{
 			Error:          fmt.Sprintf("failed to create client; %s", clientFactoryErr.Error()),
 			Source:         Proxy,
-			Code:           "CLIENT_CREATE_ERROR",
+			Code:           "ContainerGroupsClientCreateError",
 			HttpStatusCode: http.StatusInternalServerError,
 		}
 	}
@@ -86,7 +86,7 @@ func (cgm *ContainerGroupManager) CreateOrUpdate(
 		return &ContainerGroupManagerError{
 			Error:          fmt.Sprintf("failed to create/update container group; %s", commandErr.Error()),
 			Source:         Proxy,
-			Code:           "CONTAINER_GROUP_CREATION_ERROR",
+			Code:           "ContainerGroupCreationError",
 			HttpStatusCode: http.StatusBadRequest,
 		}
 	}
@@ -141,7 +141,7 @@ func (cgm *ContainerGroupManager) Status(
 		return nil, &ContainerGroupManagerError{
 			Error:          fmt.Sprintf("failed to get container group details; %s", commandErr.Error()),
 			Source:         Proxy,
-			Code:           "GET_CONTAINER_GROUP_ERROR",
+			Code:           "GetContainerGroupError",
 			HttpStatusCode: http.StatusInternalServerError,
 		}
 	}

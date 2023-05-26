@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 	"kyleroberts.io/src/api/payloads"
 	"kyleroberts.io/src/azure"
 )
@@ -31,6 +32,15 @@ type SubnetDetails struct {
 	ResourceGroup string `json:"resource_group"`
 }
 
+func logContainerGroupManagerError(logger *logrus.Logger, err *azure.ContainerGroupManagerError) {
+	logger.WithFields(logrus.Fields{
+		"http_status_code": err.HttpStatusCode,
+		"error_code":       err.Code,
+		"error":            err.Error,
+		"source":           err.Source,
+	}).Warning("Outbound Response")
+}
+
 func (env *AppEnvironment) CreateContainerGroup(context *gin.Context) {
 	env.AzureAuthenticate()
 	payload := new(payloads.CreateContainerGroup)
@@ -46,15 +56,13 @@ func (env *AppEnvironment) CreateContainerGroup(context *gin.Context) {
 	}
 	createErr := cgManager.CreateOrUpdate(payload)
 	if createErr != nil {
-		context.JSON(
-			createErr.HttpStatusCode,
-			createErr,
-		)
+		logContainerGroupManagerError(env.Logger, createErr)
+		context.JSON(createErr.HttpStatusCode, createErr)
 		return
 	} else {
 		context.JSON(
 			http.StatusOK,
-			gin.H{"message": "Created Azure Container Instance"},
+			gin.H{"message": "Issued For Azure Container Instance"},
 		)
 		return
 	}
@@ -69,6 +77,7 @@ func (env *AppEnvironment) ContainerGroupStatus(context *gin.Context) {
 	}
 	containerStatus, statusErr := cgManager.Status(context.Query("group_name"))
 	if statusErr != nil {
+		logContainerGroupManagerError(env.Logger, statusErr)
 		context.JSON(statusErr.HttpStatusCode, statusErr)
 		return
 	} else {
