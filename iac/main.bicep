@@ -10,6 +10,9 @@ param vnetName string
 @description('Name of the container group subnet')
 param containerGroupSubnetName string
 
+@description('Azure container instance subnet address prefix')
+param containerGroupSubnetPrefix string
+
 resource virtualNetwork 'Microsoft.Network/virtualNetworks@2022-11-01' = {
   name: 'vnet-${vnetName}-${environment}'
   location: location
@@ -24,13 +27,12 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2022-11-01' = {
 
 /*
   Creating the virutal network, subnet for required for deploying Azure Container Instances.
-
 */
 resource containerGroupSubnet 'Microsoft.Network/virtualNetworks/subnets@2022-11-01' = {
   name: containerGroupSubnetName
   parent: virtualNetwork
   properties: {
-    addressPrefix: '10.0.1.0/24'
+    addressPrefix: containerGroupSubnetPrefix
     // This delegation is required in order for the Azure Container Instances to deploy
     // inside a virtual network.
     delegations: [
