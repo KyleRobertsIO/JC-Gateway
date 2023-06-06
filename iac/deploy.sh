@@ -13,4 +13,5 @@ az deployment group create \
         environment="dev" \
         vnetName="data-jobs" \
         containerGroupSubnetPrefix="10.0.1.0/24" \
-        containerGroupSubnetName="container-group-subnet"
+        containerGroupSubnetName="container-group-subnet" \
+        storageAccountName="aci-testing"
