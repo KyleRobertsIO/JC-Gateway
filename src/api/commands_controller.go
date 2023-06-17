@@ -19,6 +19,7 @@ func (env *AppEnvironment) AzureAuthenticate() {
 	}
 	cred, credErr := azure.GetAzureToken(authRequirements)
 	if credErr != nil {
+		env.Logger.Info("failed to create credential for application")
 		fmt.Println(credErr.Error())
 	} else {
 		env.AzureCredential = cred

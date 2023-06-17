@@ -13,6 +13,10 @@ type AzureTokenAuthRequirements struct {
 	Scope        string
 }
 
+func determineAuthType() {
+
+}
+
 func GetAzureToken(
 	requirements AzureTokenAuthRequirements,
 ) (*azidentity.ClientSecretCredential, error) {
