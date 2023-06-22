@@ -29,7 +29,7 @@ type ContainerGroupManagerError struct {
 }
 
 type ContainerGroupManager struct {
-	Credential    *azidentity.ClientSecretCredential
+	Credential    *azidentity.DefaultAzureCredential
 	Subscription  string
 	ResourceGroup string
 }

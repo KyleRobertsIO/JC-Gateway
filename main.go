@@ -14,7 +14,6 @@ import (
 )
 
 func apiLayer(appEnvironment api.AppEnvironment) {
-	fmt.Println("Starting API Layer")
 	router := gin.Default()
 	router.Use(appEnvironment.InboundRequestLog)
 	routes := router.Group("/api")
@@ -55,6 +54,13 @@ func initLogrus(logConf config.LoggerConfig) *logrus.Logger {
 
 func main() {
 	appEnvironment := defineAppEnvironment()
-	fmt.Println("Starting Application")
+	if appEnvironment.Config.Gin.Mode == "release" {
+		gin.SetMode("release")
+	} else {
+		gin.SetMode("debug")
+	}
+	appEnvironment.Logger.Info(
+		fmt.Sprintf("Starting Gin Web Server in [%s] mode", gin.Mode()),
+	)
 	apiLayer(appEnvironment)
 }
