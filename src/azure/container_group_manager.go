@@ -29,7 +29,7 @@ type ContainerGroupManagerError struct {
 }
 
 type ContainerGroupManager struct {
-	Credential    *azidentity.ClientSecretCredential
+	Credential    *azidentity.DefaultAzureCredential
 	Subscription  string
 	ResourceGroup string
 }
@@ -97,11 +97,16 @@ func (cgm *ContainerGroupManager) determineGroupState(containerStates []Containe
 	state := "PENDING"
 	waiting := 0
 	running := 0
+	complete := 0
 	for _, containerState := range containerStates {
 		cState := strings.ToUpper(containerState.State)
 		if cState == "TERMINATED" {
-			state = "TERMINATED"
-			break
+			if strings.ToUpper(containerState.DetailStatus) == "ERROR" {
+				state = "FAILED"
+				break
+			} else {
+				complete += 1
+			}
 		}
 		if cState == "WAITING" {
 			waiting += 1
@@ -115,6 +120,9 @@ func (cgm *ContainerGroupManager) determineGroupState(containerStates []Containe
 	}
 	if running > 0 {
 		return "RUNNING"
+	}
+	if complete == len(containerStates) {
+		return "COMPLETE"
 	}
 	return state
 }

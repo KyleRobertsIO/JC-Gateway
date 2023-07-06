@@ -11,7 +11,7 @@ type APIConfig struct {
 }
 
 func assembleAPIConfig() APIConfig {
-	PORT, err := strconv.Atoi(os.Getenv("API.PORT"))
+	PORT, err := strconv.Atoi(os.Getenv("API_PORT"))
 	if err != nil {
 		log.Fatal(err.Error())
 	}

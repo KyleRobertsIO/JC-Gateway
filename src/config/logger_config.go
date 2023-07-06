@@ -48,12 +48,12 @@ type LoggerConfig struct {
 func assembleLoggerConfig() LoggerConfig {
 	// Collect Log Level
 	LOG_LEVEL := LogLevel{}
-	err := LOG_LEVEL.FromStr(os.Getenv(("LOGGER.LOG_LEVEL")))
+	err := LOG_LEVEL.FromStr(os.Getenv(("LOGGER_LOG_LEVEL")))
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 	return LoggerConfig{
 		LogLevel: LOG_LEVEL,
-		FilePath: os.Getenv("LOGGER.FILE_PATH"),
+		FilePath: os.Getenv("LOGGER_FILE_PATH"),
 	}
 }

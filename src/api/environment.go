@@ -9,5 +9,5 @@ import (
 type AppEnvironment struct {
 	Config          config.AppConfig
 	Logger          *logrus.Logger
-	AzureCredential *azidentity.ClientSecretCredential
+	AzureCredential *azidentity.DefaultAzureCredential
 }

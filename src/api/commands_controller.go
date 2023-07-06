@@ -4,34 +4,30 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"kyleroberts.io/src/api/payloads"
 	"kyleroberts.io/src/azure"
 )
 
+/*
+Authenticates with Azure Active Directory and returns a credential for Azure SDK libraries.
+*/
 func (env *AppEnvironment) AzureAuthenticate() {
-	authRequirements := azure.AzureTokenAuthRequirements{
-		ClientID:     env.Config.Azure.App.ClientID,
-		ClientSecret: env.Config.Azure.App.ClientSecret,
-		TenantID:     env.Config.Azure.TenantID,
-		Scope:        env.Config.Azure.App.Scope,
-	}
-	cred, credErr := azure.GetAzureToken(authRequirements)
+	cred, credErr := azidentity.NewDefaultAzureCredential(nil)
 	if credErr != nil {
-		fmt.Println(credErr.Error())
+		env.Logger.Info(
+			fmt.Sprintf("failed to create azure credential for application; %s", credErr.Error()),
+		)
 	} else {
 		env.AzureCredential = cred
 	}
 }
 
-type SubnetDetails struct {
-	VNetName      string `json:"vnet_name"`
-	SubnetName    string `json:"subnet_name"`
-	Subscription  string `json:"subscription"`
-	ResourceGroup string `json:"resource_group"`
-}
-
+/*
+Logs errors that take place inside of ContainerGroupManager command.
+*/
 func logContainerGroupManagerError(logger *logrus.Logger, err *azure.ContainerGroupManagerError) {
 	logger.WithFields(logrus.Fields{
 		"http_status_code": err.HttpStatusCode,
@@ -41,6 +37,9 @@ func logContainerGroupManagerError(logger *logrus.Logger, err *azure.ContainerGr
 	}).Warning("Outbound Response")
 }
 
+/*
+Endpoint for creating or updating a Container Group
+*/
 func (env *AppEnvironment) CreateContainerGroup(context *gin.Context) {
 	env.AzureAuthenticate()
 	payload := new(payloads.CreateContainerGroup)
@@ -68,6 +67,9 @@ func (env *AppEnvironment) CreateContainerGroup(context *gin.Context) {
 	}
 }
 
+/*
+Endpoint for checking the status of a Container Group.
+*/
 func (env *AppEnvironment) ContainerGroupStatus(context *gin.Context) {
 	env.AzureAuthenticate()
 	cgManager := azure.ContainerGroupManager{
