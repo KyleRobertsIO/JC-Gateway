@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  job-manager:
+    build: .
+    ports: 
+      - "8081:8081"
+    environment:
+      - "LOGGER_LOG_LEVEL=INFO"
+      - "LOGGER_FILE_PATH=./default.json"
+      - "GIN_MODE=release"
+      - "API_PORT=8081"
+      - "AZURE_AUTH_TYPE=USER_ASSIGNED_MANAGED_IDENTITY"
+      - "AZURE_AUTH_CLIENT_ID="

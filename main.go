@@ -2,15 +2,12 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"kyleroberts.io/src/api"
 	"kyleroberts.io/src/config"
-
-	"github.com/joho/godotenv"
 )
 
 func apiLayer(appEnvironment api.AppEnvironment) {
@@ -26,16 +23,15 @@ func apiLayer(appEnvironment api.AppEnvironment) {
 }
 
 func defineAppEnvironment() api.AppEnvironment {
-	envLoadErr := godotenv.Load()
-	if envLoadErr != nil {
-		log.Panic("Failed to load env file data")
-	}
+	fmt.Println("loading application config")
 	APP_CONF := config.GetAppConfig(false)
+	fmt.Println("initializing logger")
 	LOGGER := initLogrus(APP_CONF.Logger)
 	appEnvironment := api.AppEnvironment{
 		Config: APP_CONF,
 		Logger: LOGGER,
 	}
+	fmt.Println("application environment created")
 	return appEnvironment
 }
 
