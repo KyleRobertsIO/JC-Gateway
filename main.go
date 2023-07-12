@@ -19,7 +19,7 @@ func apiLayer(appEnvironment api.AppEnvironment) {
 
 	routes.POST("/create", appEnvironment.CreateContainerGroup)
 	routes.GET("/status", appEnvironment.ContainerGroupStatus)
-	router.Run(fmt.Sprintf(":%d", appEnvironment.Config.API.Port))
+	router.Run(fmt.Sprintf(":%d", appEnvironment.Config.Gin.Port))
 }
 
 func defineAppEnvironment() api.AppEnvironment {

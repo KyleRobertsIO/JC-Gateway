@@ -6,9 +6,11 @@ import (
 	"log"
 	"os"
 	"strings"
+	"strconv"
 )
 
 type GinConfig struct {
+	Port int
 	Mode string
 }
 
@@ -33,5 +35,10 @@ func assembleGinConfig() GinConfig {
 	if modeErr != nil {
 		log.Fatal(modeErr.Error())
 	}
+	PORT, err := strconv.Atoi(os.Getenv("GIN_PORT"))
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	GIN_CONFIG.Port = PORT
 	return GIN_CONFIG
 }
