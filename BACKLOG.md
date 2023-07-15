@@ -6,3 +6,8 @@ Planned for features and components that need to be worked on.
 
 Need to get the Azure Bicep IaC to use the new `.bicepparam` option
 for variables.
+
+## **Azure Resource Manager Authentication**
+
+Need to ensure proper working order of the authentication to use 
+Azure Resouce manager via the Azure Go SDK.
