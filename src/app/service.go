@@ -35,7 +35,7 @@ func (app *Application) Start() {
 		fmt.Sprintf("Starting Gin Web Server in [%s] mode", gin.Mode()),
 	)
 	ginEngine := app.defineGinEngine(appEnv)
-	ginEngine.Run(fmt.Sprintf(":%d", appEnv.Config.Gin.Port))
+	ginEngine.Run(fmt.Sprintf("0.0.0.0:%d", appEnv.Config.Gin.Port))
 }
 
 /*
