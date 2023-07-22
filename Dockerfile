@@ -11,6 +11,7 @@ ENV AZURE_AUTH_CLIENT_ID ''
 ENV AZURE_AUTH_CLIENT_SECRET ''
 ENV AZURE_AUTH_TENANT_ID ''
 
+COPY ./entrypoint.sh ./entrypoint.sh
 COPY ./main.go ./main.go
 COPY ./go.mod ./go.mod
 COPY ./go.sum ./go.sum
@@ -20,4 +21,4 @@ RUN go mod download
 
 EXPOSE 8080
 
-CMD ["go", "run", "./main.go"]
+ENTRYPOINT ["./entrypoint.sh"]
