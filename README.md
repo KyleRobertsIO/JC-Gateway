@@ -51,6 +51,11 @@ The RESTful service requires a few environment variable configurations to be abl
             </ul>
         </td>
     </tr>
+    <tr>
+        <td>GIN_PORT</td>
+        <td>true</td>
+        <td>Port number for HTTP traffic</td>
+    </tr>
 </table>
 
 ### **Azure Resource Manager Authentication**
