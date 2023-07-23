@@ -4,6 +4,9 @@ param sku string = 'B1'
 @description('Location for all resources.')
 param location string = resourceGroup().location
 
+@description('REST API HTTP port to use')
+param port string = '8080'
+
 resource appServicePlan 'Microsoft.Web/serverfarms@2022-09-01' = {
   name: 'as-cacn-job-manager-dev'
   location: location
@@ -41,11 +44,11 @@ resource webApp 'Microsoft.Web/sites@2021-01-01' = {
         }
         {
           name: 'WEBSITES_CONTAINER_START_TIME_LIMIT'
-          value: '90'
+          value: '360'
         }
         {
           name: 'WEBSITES_PORT'
-          value: '8080'
+          value: port
         }
         {
           name: 'WEBSITE_WARMUP_PATH'
@@ -54,10 +57,6 @@ resource webApp 'Microsoft.Web/sites@2021-01-01' = {
         {
           name: 'WEBSITE_SWAP_WARMUP_PING_PATH'
           value: '/api/ping'
-        }
-        {
-          name: 'PORT'
-          value: '8080'
         }
         {
           name: 'LOGGER_LOG_LEVEL'
@@ -69,7 +68,7 @@ resource webApp 'Microsoft.Web/sites@2021-01-01' = {
         }
         {
           name: 'GIN_PORT'
-          value: '8080'
+          value: port
         }
         {
           name: 'GIN_MODE'
@@ -81,15 +80,15 @@ resource webApp 'Microsoft.Web/sites@2021-01-01' = {
         }
         {
           name: 'AZURE_AUTH_CLIENT_ID'
-          value: '9e7c69a7-c510-403d-b4a1-59db42b65834'
+          value: '<client-id>'
         }
         {
           name: 'AZURE_AUTH_CLIENT_SECRET'
-          value: 'Ho08Q~ikOZk61_WJzu5-qDAI7JwWNjQO-yG-.b56'
+          value: '<client-secret>'
         }
         {
           name: 'AZURE_AUTH_TENANT_ID'
-          value: '1a68d4be-bfde-4a10-847b-ca21a96d6ef4'
+          value: '<tenant-id>'
         }
       ]
     }
