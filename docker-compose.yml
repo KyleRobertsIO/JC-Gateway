@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  job-manager:
+    build: .
+    ports: 
+      - "8081:8081"
+    env_file:
+     - .env
+    environment:
+      - "LOGGER_LOG_LEVEL=${LOGGER_LOG_LEVEL}"
+      - "LOGGER_FILE_PATH=${LOGGER_FILE_PATH}"
+      - "GIN_MODE=${GIN_MODE}"
+      - "API_PORT=${GIN_PORT}"
+      - "AZURE_AUTH_TYPE=${AZURE_AUTH_TYPE}"
+      - "AZURE_AUTH_CLIENT_ID=${AZURE_AUTH_CLIENT_ID}"

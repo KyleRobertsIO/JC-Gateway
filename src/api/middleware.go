@@ -5,7 +5,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (env *AppEnvironment) InboundRequestLog(context *gin.Context) {
+func (env *AppEnvironment) MiddlewareInboundRequestLog(context *gin.Context) {
 	env.Logger.WithFields(
 		logrus.Fields{
 			"http_method": context.Request.Method,
