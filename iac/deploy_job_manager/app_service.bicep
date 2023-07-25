@@ -8,7 +8,7 @@ param location string = resourceGroup().location
 param port string = '8080'
 
 resource appServicePlan 'Microsoft.Web/serverfarms@2022-09-01' = {
-  name: 'as-cacn-job-manager-dev'
+  name: 'asp-cacn-job-manager-dev'
   location: location
   properties: {
     reserved: true
@@ -20,7 +20,7 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2022-09-01' = {
 }
 
 resource webApp 'Microsoft.Web/sites@2021-01-01' = {
-  name: 'asp-cacn-job-manager-dev'
+  name: 'as-cacn-job-manager-dev'
   location: location
   tags: {}
   kind: 'app,linux,container'
@@ -76,19 +76,7 @@ resource webApp 'Microsoft.Web/sites@2021-01-01' = {
         }
         {
           name: 'AZURE_AUTH_TYPE'
-          value: 'SERVICE_PRINCIPAL'
-        }
-        {
-          name: 'AZURE_AUTH_CLIENT_ID'
-          value: '<client-id>'
-        }
-        {
-          name: 'AZURE_AUTH_CLIENT_SECRET'
-          value: '<client-secret>'
-        }
-        {
-          name: 'AZURE_AUTH_TENANT_ID'
-          value: '<tenant-id>'
+          value: 'SYSTEM_ASSIGNED_MANAGED_IDENTITY'
         }
       ]
     }

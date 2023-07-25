@@ -13,6 +13,6 @@ az group create `
 
 az deployment group create `
     --resource-group $ResourceGroup `
-    --template-file app_service.bicep `
+    --template-file ./iac/deploy_job_manager/app_service.bicep `
     --parameters location=$DeploymentLocation `
         sku='B1'
