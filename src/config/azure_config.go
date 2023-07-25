@@ -68,6 +68,8 @@ func determineAuthDetails(authType string) (*AzureAuthDetails, error) {
 		return assembleServicePrincipalDetails()
 	case "USER_ASSIGNED_MANAGED_IDENTITY":
 		return assembleUserAssignedManagedIdentityDetails()
+	case "SYSTEM_ASSIGNED_MANAGED_IDENTITY":
+		return nil, nil
 	default:
 		return nil, fmt.Errorf("unknown [AZURE_AUTH_TYPE] value supplied")
 	}
