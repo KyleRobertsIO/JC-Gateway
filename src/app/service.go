@@ -32,6 +32,12 @@ func (app *Application) Start() {
 		gin.SetMode("debug")
 	}
 	appEnv.Logger.Info(
+		fmt.Sprintf(
+			"Application leveraging [%s] authentication to Azure REST API",
+			appEnv.Config.Azure.AuthType,
+		),
+	)
+	appEnv.Logger.Info(
 		fmt.Sprintf("Starting Gin Web Server in [%s] mode", gin.Mode()),
 	)
 	ginEngine := app.defineGinEngine(appEnv)
@@ -79,9 +85,7 @@ Sets up the requirements for the application
 environment configuration.
 */
 func (app *Application) defineEnvironment() (*api.AppEnvironment, error) {
-	fmt.Println("loading application environment config")
 	appConf := config.GetAppConfig(false)
-	fmt.Println("initializing logger")
 	logger, loggerErr := app.defineLogger(appConf.Logger)
 	if loggerErr != nil {
 		return nil, loggerErr
