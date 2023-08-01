@@ -1,4 +1,4 @@
-# **Job Container Manager API**
+# **Azure Container Instances Job Manager**
 
 ## **Environment Variables**
 
