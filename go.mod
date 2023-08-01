@@ -1,4 +1,4 @@
-module kyleroberts.io
+module github.com/kylerobertsio/aci-job-manager
 
 go 1.19
 

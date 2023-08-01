@@ -1,6 +1,6 @@
 package main
 
-import "kyleroberts.io/src/app"
+import "github.com/kylerobertsio/aci-job-manager/src/app"
 
 func main() {
 	app := app.Application{

@@ -11,7 +11,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/containerinstance/armcontainerinstance/v2"
-	"kyleroberts.io/src/api/payloads"
+	"github.com/kylerobertsio/aci-job-manager/src/api/payloads"
 )
 
 type ErrorSource string

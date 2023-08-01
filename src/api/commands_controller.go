@@ -6,9 +6,9 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/gin-gonic/gin"
+	"github.com/kylerobertsio/aci-job-manager/src/api/payloads"
+	"github.com/kylerobertsio/aci-job-manager/src/azure"
 	"github.com/sirupsen/logrus"
-	"kyleroberts.io/src/api/payloads"
-	"kyleroberts.io/src/azure"
 )
 
 /*

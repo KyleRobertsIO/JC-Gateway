@@ -5,9 +5,9 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/kylerobertsio/aci-job-manager/src/api"
+	"github.com/kylerobertsio/aci-job-manager/src/config"
 	"github.com/sirupsen/logrus"
-	"kyleroberts.io/src/api"
-	"kyleroberts.io/src/config"
 )
 
 type Application struct {
